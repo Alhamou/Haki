@@ -1,11 +1,21 @@
-# Haki / حكي
+<p align="center">
+  <img src="Resources/AppIcon-1024.png" width="128" height="128" alt="Haki App Icon" />
+</p>
 
-> **Speak Arabic. Haki writes it.**  
-> *احكي، وحكي بيكتبها.*
+<h1 align="center">Haki / حكي</h1>
 
-Haki is a lightweight native macOS menu bar app for Arabic voice dictation using OpenAI speech-to-text, designed especially for natural Arabic and Levantine speech.
+<p align="center">
+  <strong>Speak Arabic. Haki writes it.</strong><br>
+  <em>احكي، وحكي بيكتبها.</em>
+</p>
 
-Focus any text field in any macOS application, hold your push-to-talk hotkey (`⌥ Option + Space`), speak naturally in Arabic, and release—Haki transcribes your speech and pastes it instantly at your active cursor position.
+<p align="center">
+  <img src="Resources/screenshot.png" width="660" alt="Haki Settings Screenshot" />
+</p>
+
+Haki is a lightweight native macOS menu bar utility for speech-to-text dictation powered by OpenAI models, designed especially for natural Arabic and Levantine speech with multi-language support (Arabic, English, German, French, and Auto-Detect).
+
+Focus any text field in any macOS application, hold your push-to-talk hotkey (`⌥ Option + Space`), speak naturally, and release—Haki transcribes your speech and pastes it instantly at your active cursor position.
 
 Zero local AI models. Zero Python. Zero Node.js runtime. Zero Electron. Zero heavy dependencies.
 
@@ -13,16 +23,17 @@ Zero local AI models. Zero Python. Zero Node.js runtime. Zero Electron. Zero hea
 
 ## Features
 
-- **Push-to-Talk Global Hotkey (`⌥ Option + Space`)**: Press and hold to speak Arabic, release to automatically transcribe and paste at your cursor in any active application.
+- **Push-to-Talk Global Hotkey (`⌥ Option + Space`)**: Press and hold to speak, release to automatically transcribe and paste at your cursor in any active application.
 - **Selectable OpenAI Transcription Models**:
   - **`gpt-transcribe`** (*Default & Recommended*): Fast, cost-efficient, low-latency transcription optimized for daily voice typing.
   - **`gpt-4o-transcribe`** (*High Accuracy*): Flagship audio transcription model for complex phrases, dialects, and technical terminology.
-- **Arabic & Syrian / Levantine Dialect Preservation**: Tuned specifically for Arabic (`language: ar`) with context prompting that preserves Syrian/Levantine colloquialisms, regional proper nouns, and technical English terms (e.g., *GitHub*, *API*, *Docker*).
-- **Menu Bar Resident (`LSUIElement`)**: Unobtrusive status bar presence with real-time state icons (Idle, Recording, Transcribing), device selector, model selector, and one-click dictation toggle.
+- **Selectable Languages & Dialect Preservation**: Supports Arabic (`ar` with Levantine & Syrian dialect optimization), English (`en`), German (`de`), French (`fr`), and automatic language detection (`auto`).
+- **Modern Native macOS Settings**: Clean left sidebar navigation (General, Transcription, Audio, Shortcut, Advanced), native switch controls, and seamless Dark/Light mode.
+- **Menu Bar Resident (`LSUIElement`)**: Unobtrusive status bar presence with real-time state icons (Idle, Recording, Transcribing), device selector, model & language selectors, and one-click dictation toggle.
 - **Dynamic Microphone Selection**: Seamlessly switches between built-in microphones, USB audio interfaces, and AirPods with automatic reconnection handling via CoreAudio HAL.
-- **Live Input Level & Silence Rejection**: Real-time VU metering with automatic silence and zero-energy detection, preventing empty or accidental API requests.
+- **Live Input Level & Silence Rejection**: Real-time VU metering with automatic sound detection and silence rejection, preventing empty or accidental API requests.
 - **Safe Clipboard Auto-Paste**: Preserves your existing clipboard contents by saving and restoring them after paste injection, without stealing focus from your active application.
-- **Secure Keychain Storage**: Your OpenAI API key is stored exclusively in the macOS Keychain (`Security.framework`). Never written to `UserDefaults`, plists, source files, or git. Includes automatic backward-compatible key migration.
+- **Secure Keychain Storage**: Your OpenAI API key is stored exclusively in the macOS Keychain (`Security.framework`). Never written to `UserDefaults`, plists, source files, or git.
 - **Zero Audio Footprint**: Audio is captured to temporary scratch files and deleted immediately upon completion or failure. No local audio history is ever retained.
 - **Floating Visual HUD**: A subtle, non-activating floating indicator displaying live recording status, transcribing progress, and completion states.
 
