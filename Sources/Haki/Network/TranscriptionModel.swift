@@ -33,3 +33,46 @@ public enum TranscriptionModel: String, CaseIterable, Identifiable, Codable {
         return model
     }
 }
+
+public enum TranscriptionLanguage: String, CaseIterable, Identifiable, Codable {
+    case arabic = "ar"
+    case english = "en"
+    case german = "de"
+    case french = "fr"
+    case auto = "auto"
+    
+    public var id: String { rawValue }
+    
+    public var displayName: String {
+        switch self {
+        case .arabic:
+            return "Arabic (العربية)"
+        case .english:
+            return "English"
+        case .german:
+            return "German (Deutsch)"
+        case .french:
+            return "French (Français)"
+        case .auto:
+            return "Auto-Detect Language"
+        }
+    }
+    
+    public var description: String {
+        switch self {
+        case .arabic:
+            return "Optimized for Syrian, Levantine, and standard Arabic speech."
+        case .english:
+            return "Transcribe spoken English with high accuracy."
+        case .german:
+            return "Transcribe standard and regional German speech."
+        case .french:
+            return "Transcribe standard French speech."
+        case .auto:
+            return "Automatically detects spoken language before transcribing."
+        }
+    }
+    
+    public static let defaultLanguage: TranscriptionLanguage = .arabic
+}
+

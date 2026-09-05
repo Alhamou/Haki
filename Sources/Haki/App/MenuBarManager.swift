@@ -167,6 +167,24 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         modelItem.submenu = modelMenu
         menu.addItem(modelItem)
         
+        // Language Submenu
+        let currentLang = TranscriptionLanguage(rawValue: AppSettings.shared.language) ?? .arabic
+        let langItem = NSMenuItem(title: "Language: \(currentLang.displayName)", action: nil, keyEquivalent: "")
+        let langMenu = NSMenu(title: "Transcription Language")
+        for lang in TranscriptionLanguage.allCases {
+            let lItem = NSMenuItem(
+                title: lang.displayName,
+                action: #selector(languageSelected(_:)),
+                keyEquivalent: ""
+            )
+            lItem.target = self
+            lItem.representedObject = lang.rawValue
+            lItem.state = (lang.rawValue == AppSettings.shared.language) ? .on : .off
+            langMenu.addItem(lItem)
+        }
+        langItem.submenu = langMenu
+        menu.addItem(langItem)
+        
         menu.addItem(NSMenuItem.separator())
         
         // Accessibility Warning if needed
@@ -215,6 +233,12 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         if let raw = sender.representedObject as? String,
            let model = TranscriptionModel(rawValue: raw) {
             AppSettings.shared.model = model
+        }
+    }
+    
+    @objc private func languageSelected(_ sender: NSMenuItem) {
+        if let raw = sender.representedObject as? String {
+            AppSettings.shared.language = raw
         }
     }
     

@@ -83,8 +83,8 @@ public final class OpenAIService {
         // Model
         body.appendFormField(named: "model", value: model, boundary: boundary)
         
-        // Language
-        if !language.isEmpty {
+        // Language (omit for auto-detection)
+        if !language.isEmpty && language.lowercased() != "auto" {
             body.appendFormField(named: "language", value: language, boundary: boundary)
         }
         
