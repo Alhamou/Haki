@@ -1,8 +1,11 @@
-# ArabicDictation
+# Haki / حكي
 
-A native, ultra-lightweight macOS menu bar application for Arabic voice dictation powered by the OpenAI Audio Transcription API.
+> **Speak Arabic. Haki writes it.**  
+> *احكي، وحكي بيكتبها.*
 
-Focus any text field in any macOS application, hold a global hotkey, speak in Arabic, and release—your speech is transcribed and pasted instantly at your current cursor position.
+Haki is a lightweight native macOS menu bar app for Arabic voice dictation using OpenAI speech-to-text, designed especially for natural Arabic and Levantine speech.
+
+Focus any text field in any macOS application, hold your push-to-talk hotkey (`⌥ Option + Space`), speak naturally in Arabic, and release—Haki transcribes your speech and pastes it instantly at your active cursor position.
 
 Zero local AI models. Zero Python. Zero Node.js runtime. Zero Electron. Zero heavy dependencies.
 
@@ -15,11 +18,11 @@ Zero local AI models. Zero Python. Zero Node.js runtime. Zero Electron. Zero hea
   - **`gpt-transcribe`** (*Default & Recommended*): Fast, cost-efficient, low-latency transcription optimized for daily voice typing.
   - **`gpt-4o-transcribe`** (*High Accuracy*): Flagship audio transcription model for complex phrases, dialects, and technical terminology.
 - **Arabic & Syrian / Levantine Dialect Preservation**: Tuned specifically for Arabic (`language: ar`) with context prompting that preserves Syrian/Levantine colloquialisms, regional proper nouns, and technical English terms (e.g., *GitHub*, *API*, *Docker*).
-- **Menu Bar Resident (`LSUIElement`)**: Unobtrusive status bar presence with real-time state icons (Idle, Recording, Transcribing), device selector, and one-click dictation toggle.
+- **Menu Bar Resident (`LSUIElement`)**: Unobtrusive status bar presence with real-time state icons (Idle, Recording, Transcribing), device selector, model selector, and one-click dictation toggle.
 - **Dynamic Microphone Selection**: Seamlessly switches between built-in microphones, USB audio interfaces, and AirPods with automatic reconnection handling via CoreAudio HAL.
 - **Live Input Level & Silence Rejection**: Real-time VU metering with automatic silence and zero-energy detection, preventing empty or accidental API requests.
 - **Safe Clipboard Auto-Paste**: Preserves your existing clipboard contents by saving and restoring them after paste injection, without stealing focus from your active application.
-- **Secure Keychain Storage**: Your OpenAI API key is stored exclusively in the macOS Keychain (`Security.framework`). Never written to `UserDefaults`, plists, source files, or git.
+- **Secure Keychain Storage**: Your OpenAI API key is stored exclusively in the macOS Keychain (`Security.framework`). Never written to `UserDefaults`, plists, source files, or git. Includes automatic backward-compatible key migration.
 - **Zero Audio Footprint**: Audio is captured to temporary scratch files and deleted immediately upon completion or failure. No local audio history is ever retained.
 - **Floating Visual HUD**: A subtle, non-activating floating indicator displaying live recording status, transcribing progress, and completion states.
 
@@ -32,7 +35,7 @@ Zero local AI models. Zero Python. Zero Node.js runtime. Zero Electron. Zero hea
 | `gpt-transcribe` | **GPT Transcribe** *(Default & Recommended)* | Fast, low-latency, cost-effective daily voice typing. |
 | `gpt-4o-transcribe` | **GPT-4o Transcribe** *(High Accuracy)* | Maximum transcription accuracy for complex vocabulary and mixed dialects. |
 
-The transcription model can be switched at any time from **Settings → Transcription**.
+The transcription model can be switched at any time from **Settings → Transcription** or directly from the menu bar dropdown.
 
 ---
 
@@ -55,8 +58,8 @@ The transcription model can be switched at any time from **Settings → Transcri
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/ArabicDictation.git
-cd ArabicDictation
+git clone https://github.com/Alhamou/Haki.git
+cd Haki
 ```
 
 ### 2. Build via Swift Package Manager
@@ -80,20 +83,20 @@ chmod +x scripts/build_app.sh
 
 This script will:
 1. Compile the release binary (`swift build -c release`).
-2. Construct the macOS app bundle structure (`build/ArabicDictation.app`).
+2. Construct the macOS app bundle structure (`build/Haki.app`).
 3. Compile and link `AppIcon.icns` and `Info.plist`.
 4. Sign the bundle with your local Apple Development certificate or ad-hoc signature.
-5. Install or update the application in `/Applications/ArabicDictation.app`.
+5. Install or update the application in `/Applications/Haki.app`.
 
 ---
 
 ## Step-by-Step Usage Guide
 
-1. **Launch the App**: Open `ArabicDictation.app` from `/Applications` or your `build/` folder. A microphone icon (🎙️) will appear in your menu bar.
+1. **Launch the App**: Open `Haki.app` from `/Applications` or your `build/` folder. The menu bar icon (🎙️ `حكي`) will appear.
 2. **Grant Permissions**:
    - When prompted, grant **Microphone** access.
-   - Open **System Settings → Privacy & Security → Accessibility** and ensure **ArabicDictation** is enabled.
-3. **Open Settings**: Click the menu bar icon (🎙️) and select **Settings…** (or press `⌘ ,`).
+   - Open **System Settings → Privacy & Security → Accessibility** and ensure **Haki** is enabled.
+3. **Open Settings**: Click the menu bar icon and select **Settings…** (or press `⌘ ,`).
 4. **Paste OpenAI API Key**: Under the **Transcription** tab, enter your OpenAI API key (`sk-...`) and click **Save**. Click **Test API Key** to verify connectivity.
 5. **Select Model**: Choose your preferred transcription model (default: `GPT Transcribe — Recommended`).
 6. **Select Microphone**: Under the **Audio** tab, choose your desired input device (e.g. Built-in Microphone, USB headset, or AirPods) and test the live input level meter.
@@ -132,7 +135,7 @@ This script will:
 ## Development & Testing
 
 ### Running Tests
-ArabicDictation includes a comprehensive unit test suite covering model selection, fallback logic, settings persistence, multipart payload generation, paste timings, and silence detection:
+Haki includes a comprehensive unit test suite covering model selection, fallback logic, settings persistence, Keychain backward-compatible migration, multipart payload generation, paste timings, and silence detection:
 
 ```bash
 swift test
@@ -140,23 +143,24 @@ swift test
 
 ### Project Structure
 ```
-ArabicDictation/
-├── Package.swift               # SPM project manifest
+Haki/
+├── Package.swift               # SPM project manifest (product: Haki)
 ├── Resources/
-│   ├── AppIcon.icns            # 1024x1024 macOS app icon
-│   └── Info.plist              # Bundle metadata (LSUIElement, permissions)
+│   ├── AppIcon.icns            # Native 1024x1024 macOS app icon
+│   ├── Info.plist              # Bundle metadata (LSUIElement, permissions)
+│   └── ArabicDictation.entitlements # Audio input & network client entitlements
 ├── Sources/ArabicDictation/
-│   ├── App/                    # App lifecycle, AppDelegate, StatusItemController
+│   ├── App/                    # App lifecycle, AppDelegate, MenuBarManager
 │   ├── Audio/                  # AudioRecorder, AudioDeviceManager (CoreAudio HAL)
-│   ├── Hotkey/                 # GlobalHotkeyManager (CGEventTap)
+│   ├── HotKey/                 # GlobalHotkeyManager (CGEventTap)
 │   ├── HUD/                    # FloatingHUDController, HUDView
 │   ├── Paste/                  # PasteManager (CGEvent, clipboard restoration)
-│   ├── Services/               # OpenAIService, KeychainHelper
-│   ├── Settings/               # AppSettings, SettingsView, TranscriptionModel
-│   └── UI/                     # Menu bar & status presentation
+│   ├── Network/                # OpenAIService, KeychainHelper, TranscriptionModel
+│   ├── UI/Settings/            # AppSettings, SettingsView, SettingsWindowController
+│   └── Utilities/              # AppLogger
 ├── Tests/ArabicDictationTests/ # Unit & integration test suites
 ├── scripts/
-│   ├── build_app.sh            # Packaging & codesigning script
+│   ├── build_app.sh            # Packaging & codesigning script (builds Haki.app)
 │   ├── generate_icon.swift     # CoreGraphics 1024x1024 master icon generator
 │   └── make_icons.sh           # iconutil pipeline script
 ├── CONTRIBUTING.md             # Contribution guidelines

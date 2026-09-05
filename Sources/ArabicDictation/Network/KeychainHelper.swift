@@ -4,7 +4,9 @@ import Security
 public final class KeychainHelper {
     public static let shared = KeychainHelper()
     
-    private let defaultService = "com.arabicdictation.app"
+    private let defaultService = "com.haki.app"
+    public static let legacyService = "com.arabicdictation.app"
+    public static let currentService = "com.haki.app"
     private let defaultAccount = "OpenAI_API_Key"
     
     public init() {}
@@ -39,9 +41,29 @@ public final class KeychainHelper {
         service: String? = nil,
         account: String? = nil
     ) -> String? {
-        let service = service ?? defaultService
         let account = account ?? defaultAccount
         
+        // If a specific service was explicitly requested, read from it directly
+        if let specificService = service {
+            return readRaw(service: specificService, account: account)
+        }
+        
+        // 1. Try reading from Haki service
+        if let key = readRaw(service: defaultService, account: account) {
+            return key
+        }
+        
+        // 2. Backward-compatible migration: Check legacy ArabicDictation Keychain entry
+        if let legacyKey = readRaw(service: KeychainHelper.legacyService, account: account) {
+            // Migrate to Haki service securely
+            _ = save(apiKey: legacyKey, service: defaultService, account: account)
+            return legacyKey
+        }
+        
+        return nil
+    }
+    
+    private func readRaw(service: String, account: String) -> String? {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
@@ -63,9 +85,19 @@ public final class KeychainHelper {
         service: String? = nil,
         account: String? = nil
     ) -> Bool {
-        let service = service ?? defaultService
         let account = account ?? defaultAccount
         
+        if let specificService = service {
+            return deleteRaw(service: specificService, account: account)
+        }
+        
+        // Delete from both current Haki service and legacy service
+        let currentStatus = deleteRaw(service: defaultService, account: account)
+        let legacyStatus = deleteRaw(service: KeychainHelper.legacyService, account: account)
+        return currentStatus || legacyStatus
+    }
+    
+    private func deleteRaw(service: String, account: String) -> Bool {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,

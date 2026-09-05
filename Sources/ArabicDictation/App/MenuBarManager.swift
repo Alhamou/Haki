@@ -22,7 +22,7 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         
         if let button = item.button {
             button.imagePosition = .imageLeading
-            button.toolTip = "Arabic Dictation (\(AppSettings.shared.shortcut.displayString))"
+            button.toolTip = "Haki — حكي (\(AppSettings.shared.shortcut.displayString))"
         }
         
         updateIcon()
@@ -38,7 +38,7 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             if let button = self.statusItem?.button {
-                button.toolTip = "Arabic Dictation (\(AppSettings.shared.shortcut.displayString))"
+                button.toolTip = "Haki — حكي (\(AppSettings.shared.shortcut.displayString))"
             }
             if let menu = self.statusItem?.menu {
                 self.rebuildMenu(menu)
@@ -78,11 +78,11 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
             button.title = " معالجة..."
         } else {
             let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
-            if let image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Arabic Dictation")?.withSymbolConfiguration(config) {
+            if let image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Haki")?.withSymbolConfiguration(config) {
                 image.isTemplate = true
                 button.image = image
             }
-            button.title = " عربي"
+            button.title = " حكي"
         }
     }
     
@@ -106,7 +106,7 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         } else if isTranscribing {
             statusTitle = "⏳ Transcribing via OpenAI..."
         } else {
-            statusTitle = "Arabic Dictation (\(AppSettings.shared.shortcut.displayString))"
+            statusTitle = "Haki — حكي (\(AppSettings.shared.shortcut.displayString))"
         }
         let header = NSMenuItem(title: statusTitle, action: nil, keyEquivalent: "")
         header.isEnabled = false
@@ -189,7 +189,7 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         menu.addItem(NSMenuItem.separator())
         
         // Quit
-        let quitItem = NSMenuItem(title: "Quit Arabic Dictation", action: #selector(quitAppClicked), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "Quit Haki", action: #selector(quitAppClicked), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
     }

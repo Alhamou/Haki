@@ -1,6 +1,6 @@
-# Contributing to ArabicDictation
+# Contributing to Haki
 
-Thank you for your interest in improving ArabicDictation! We welcome community contributions that preserve our commitment to a lightweight, fast, and native macOS application.
+Thank you for your interest in improving Haki! We welcome community contributions that preserve our commitment to a lightweight, fast, and native macOS application.
 
 ---
 

@@ -88,14 +88,20 @@ public struct SettingsView: View {
             
             Divider()
             
-            // Privacy Footer
+            // Privacy & Brand Footer
             HStack {
-                Image(systemName: "lock.shield.fill")
-                    .foregroundColor(.secondary)
-                Text("Audio is sent to OpenAI only when you finish a dictation. No local audio history is kept.")
+                Image(systemName: "mic.badge.waveform")
+                    .foregroundColor(.accentColor)
+                Text("Haki • احكي، وحكي بيكتبها")
                     .font(.caption)
+                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
                 Spacer()
+                Image(systemName: "lock.shield.fill")
+                    .foregroundColor(.secondary)
+                Text("Audio is sent to OpenAI only on dictation. Zero local audio kept.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)

@@ -40,4 +40,31 @@ final class KeychainHelperTests: XCTestCase {
         // 6. Verify deleted
         XCTAssertNil(helper.read(service: testService, account: testAccount))
     }
+    
+    func testKeychainBackwardCompatibleMigration() {
+        let helper = KeychainHelper.shared
+        let migrationAccount = "MigrationTest_\(UUID().uuidString)"
+        let originalKey = "sk-legacy-key-migration-test"
+        
+        defer {
+            _ = helper.delete(service: KeychainHelper.currentService, account: migrationAccount)
+            _ = helper.delete(service: KeychainHelper.legacyService, account: migrationAccount)
+        }
+        
+        // Ensure both are empty initially
+        XCTAssertNil(helper.read(service: KeychainHelper.currentService, account: migrationAccount))
+        XCTAssertNil(helper.read(service: KeychainHelper.legacyService, account: migrationAccount))
+        
+        // 1. Save directly to legacy service (simulating existing ArabicDictation user)
+        let savedToLegacy = helper.save(apiKey: originalKey, service: KeychainHelper.legacyService, account: migrationAccount)
+        XCTAssertTrue(savedToLegacy)
+        
+        // 2. Call read with default service (simulating Haki app launch)
+        let migratedKey = helper.read(account: migrationAccount)
+        XCTAssertEqual(migratedKey, originalKey, "Failed to read legacy key during migration")
+        
+        // 3. Verify key is now persisted under new Haki service
+        let hakiStoredKey = helper.read(service: KeychainHelper.currentService, account: migrationAccount)
+        XCTAssertEqual(hakiStoredKey, originalKey, "Key was not migrated to Haki service")
+    }
 }

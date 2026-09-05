@@ -4,7 +4,7 @@ import AVFoundation
 
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_ notification: Notification) {
-        AppLogger.shared.info("Arabic Dictation launching...")
+        AppLogger.shared.info("Haki launching...")
         
         // Ensure menu-bar-only accessory mode (no Dock icon)
         NSApp.setActivationPolicy(.accessory)
@@ -57,6 +57,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationWillTerminate(_ notification: Notification) {
         PushToTalkManager.shared.stop()
         AudioRecorder.shared.cancelRecording()
-        AppLogger.shared.info("Arabic Dictation terminated.")
+        AppLogger.shared.info("Haki terminated.")
     }
 }

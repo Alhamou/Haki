@@ -2,13 +2,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "ArabicDictation",
+    name: "Haki",
     platforms: [
         .macOS(.v13)
     ],
     products: [
         .executable(
-            name: "ArabicDictation",
+            name: "Haki",
             targets: ["ArabicDictation"]
         )
     ],

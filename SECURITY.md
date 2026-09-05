@@ -10,7 +10,7 @@
 
 ## Reporting a Vulnerability
 
-We take the security of ArabicDictation and user privacy seriously.
+We take the security of Haki and user privacy seriously.
 
 - **Do NOT report vulnerabilities or leaked credentials publicly** via GitHub issues, discussions, or pull requests.
 - **Use GitHub Private Vulnerability Reporting**: If enabled on this repository, please submit a report through the **Security** tab -> **Report a vulnerability**.

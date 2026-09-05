@@ -26,7 +26,7 @@ public final class SettingsWindowController {
             backing: .buffered,
             defer: false
         )
-        win.title = "Arabic Dictation Settings"
+        win.title = "Haki Settings"
         win.contentViewController = hostingController
         win.center()
         win.isReleasedWhenClosed = false

@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_DIR/build"
-APP_NAME="ArabicDictation"
+APP_NAME="Haki"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
 DEST_APPLICATIONS="/Applications/$APP_NAME.app"
 
@@ -47,7 +47,8 @@ else
     echo "Signing application bundle with certificate: $SIGN_IDENTITY..."
 fi
 
-codesign -s "$SIGN_IDENTITY" --force --deep --entitlements "$PROJECT_DIR/Resources/ArabicDictation.entitlements" "$APP_BUNDLE"
+ENTITLEMENTS="$PROJECT_DIR/Resources/ArabicDictation.entitlements"
+codesign -s "$SIGN_IDENTITY" --force --deep --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
 
 echo "Application built successfully at: $APP_BUNDLE"
 
