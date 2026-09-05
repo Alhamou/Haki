@@ -149,6 +149,24 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         micItem.submenu = micMenu
         menu.addItem(micItem)
         
+        // Model Submenu
+        let currentModel = AppSettings.shared.model
+        let modelItem = NSMenuItem(title: "Model: \(currentModel.displayName)", action: nil, keyEquivalent: "")
+        let modelMenu = NSMenu(title: "Transcription Model")
+        for model in TranscriptionModel.allCases {
+            let mItem = NSMenuItem(
+                title: model.displayName,
+                action: #selector(modelSelected(_:)),
+                keyEquivalent: ""
+            )
+            mItem.target = self
+            mItem.representedObject = model.rawValue
+            mItem.state = (model == currentModel) ? .on : .off
+            modelMenu.addItem(mItem)
+        }
+        modelItem.submenu = modelMenu
+        menu.addItem(modelItem)
+        
         menu.addItem(NSMenuItem.separator())
         
         // Accessibility Warning if needed
@@ -190,6 +208,13 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
     @objc private func deviceSelected(_ sender: NSMenuItem) {
         if let uid = sender.representedObject as? String {
             AudioDeviceManager.shared.selectDevice(uid: uid)
+        }
+    }
+    
+    @objc private func modelSelected(_ sender: NSMenuItem) {
+        if let raw = sender.representedObject as? String,
+           let model = TranscriptionModel(rawValue: raw) {
+            AppSettings.shared.model = model
         }
     }
     

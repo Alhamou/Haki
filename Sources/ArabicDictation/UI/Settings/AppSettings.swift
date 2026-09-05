@@ -7,8 +7,8 @@ public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
     
     // MARK: - Transcription Settings
-    @Published public var model: String {
-        didSet { UserDefaults.standard.set(model, forKey: "TranscriptionModel") }
+    @Published public var model: TranscriptionModel {
+        didSet { UserDefaults.standard.set(model.rawValue, forKey: "TranscriptionModel") }
     }
     
     @Published public var language: String {
@@ -48,8 +48,8 @@ public final class AppSettings: ObservableObject {
     @Published public var hasAPIKey: Bool = false
     
     private init() {
-        // Default values
-        self.model = UserDefaults.standard.string(forKey: "TranscriptionModel") ?? "gpt-4o-transcribe"
+        // Default values: gpt-transcribe is the recommended default
+        self.model = TranscriptionModel.from(rawString: UserDefaults.standard.string(forKey: "TranscriptionModel"))
         self.language = UserDefaults.standard.string(forKey: "TranscriptionLanguage") ?? "ar"
         self.promptContext = UserDefaults.standard.string(forKey: "TranscriptionPrompt") ?? "Transcribe faithfully in Arabic. Preserve Syrian and Levantine dialect, names, places, numbers, and mixed Arabic-English words. Do not rewrite the meaning."
         

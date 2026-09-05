@@ -6,7 +6,7 @@ final class SettingsAndPasteTests: XCTestCase {
     
     func testAppSettingsDefaults() {
         let settings = AppSettings.shared
-        XCTAssertEqual(settings.model, "gpt-4o-transcribe")
+        XCTAssertEqual(settings.model, .gptTranscribe)
         XCTAssertEqual(settings.language, "ar")
         XCTAssertTrue(settings.promptContext.contains("Syrian and Levantine dialect"))
         XCTAssertTrue(settings.pasteAutomatically)

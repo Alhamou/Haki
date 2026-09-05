@@ -171,16 +171,27 @@ public struct SettingsView: View {
             
             Divider()
             
-            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-                GridRow {
-                    Text("Model:")
-                        .foregroundColor(.secondary)
-                    HStack {
-                        Text("GPT-4o Transcribe (\(settings.model))")
-                            .font(.system(.body, design: .monospaced))
-                        Spacer()
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Transcription Model:")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                Picker("", selection: $settings.model) {
+                    ForEach(TranscriptionModel.allCases) { modelOption in
+                        Text(modelOption.displayName).tag(modelOption)
                     }
                 }
+                .labelsHidden()
+                
+                Text(settings.model.modelDescription)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            
+            Divider()
+            
+            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
                 GridRow {
                     Text("Language:")
                         .foregroundColor(.secondary)

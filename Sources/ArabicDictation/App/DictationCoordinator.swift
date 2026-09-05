@@ -102,7 +102,7 @@ public final class DictationCoordinator: ObservableObject {
                 let text = try await OpenAIService.shared.transcribe(
                     audioData: audioData,
                     apiKey: apiKey,
-                    model: settings.model,
+                    model: settings.model.rawValue,
                     language: settings.language,
                     prompt: settings.promptContext
                 )
