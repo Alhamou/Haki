@@ -35,12 +35,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        // Prompt for API key if missing
-        if !AppSettings.shared.hasAPIKey {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        // Prompt for settings if --settings argument passed or API key is missing
+        if CommandLine.arguments.contains("--settings") || !AppSettings.shared.hasAPIKey {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 SettingsWindowController.shared.showSettings()
             }
         }
+    }
+    
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        SettingsWindowController.shared.showSettings()
+        return true
     }
     
     private func setupPushToTalk() {
