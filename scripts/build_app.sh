@@ -35,19 +35,22 @@ chmod +x "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 cp "$PROJECT_DIR/Resources/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 
 # 4. Code sign with entitlements
-echo "Signing application bundle with entitlements..."
-codesign -s - --force --deep --entitlements "$PROJECT_DIR/Resources/ArabicDictation.entitlements" "$APP_BUNDLE"
+SIGN_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development:" | grep -v "REVOKED" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/' || true)
+if [ -z "$SIGN_IDENTITY" ]; then
+    SIGN_IDENTITY="-"
+    echo "Signing application bundle with ad-hoc signature..."
+else
+    echo "Signing application bundle with certificate: $SIGN_IDENTITY..."
+fi
+
+codesign -s "$SIGN_IDENTITY" --force --deep --entitlements "$PROJECT_DIR/Resources/ArabicDictation.entitlements" "$APP_BUNDLE"
 
 echo "Application built successfully at: $APP_BUNDLE"
 
-# 5. Check /Applications install
-if [ -d "$DEST_APPLICATIONS" ]; then
-    echo "Notice: An existing $APP_NAME.app was found at $DEST_APPLICATIONS. It will NOT be overwritten automatically."
-    echo "To update /Applications, run: rm -rf \"$DEST_APPLICATIONS\" && cp -R \"$APP_BUNDLE\" \"$DEST_APPLICATIONS\""
-else
-    echo "Copying $APP_NAME.app to $DEST_APPLICATIONS..."
-    cp -R "$APP_BUNDLE" "$DEST_APPLICATIONS"
-    echo "Successfully installed to $DEST_APPLICATIONS"
-fi
+# 5. Install to /Applications
+echo "Installing to $DEST_APPLICATIONS..."
+rm -rf "$DEST_APPLICATIONS"
+cp -R "$APP_BUNDLE" "$DEST_APPLICATIONS"
+echo "Successfully installed to $DEST_APPLICATIONS"
 
 echo "=== Build Complete ==="

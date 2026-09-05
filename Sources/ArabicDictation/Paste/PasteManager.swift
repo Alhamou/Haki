@@ -59,13 +59,14 @@ public final class PasteManager {
         keyUp.flags = .maskCommand
         
         keyDown.post(tap: .cghidEventTap)
+        usleep(25000) // 25ms delay so the key down is properly registered before key up
         keyUp.post(tap: .cghidEventTap)
         
         AppLogger.shared.info("Synthesized Cmd+V event to paste Arabic text.")
         
         // 4. Restore original clipboard content after application has processed the paste
         if restoreClipboard && !previousItems.isEmpty {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 pasteboard.clearContents()
                 for itemDict in previousItems {
                     let item = NSPasteboardItem()
