@@ -21,13 +21,15 @@ public final class SettingsWindowController {
         let hostingController = NSHostingController(rootView: settingsView)
         
         let win = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 440),
-            styleMask: [.titled, .closable, .miniaturizable],
+            contentRect: NSRect(x: 0, y: 0, width: 660, height: 560),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
+        win.minSize = NSSize(width: 620, height: 500)
         win.title = "Haki Settings"
         win.contentViewController = hostingController
+        win.setFrameAutosaveName("HakiSettingsWindow")
         win.center()
         win.isReleasedWhenClosed = false
         
