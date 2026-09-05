@@ -38,6 +38,13 @@ public final class PasteManager {
             return false
         }
         
+        // If accessibility is not granted, macOS blocks synthetic keystrokes.
+        // Keep the transcribed text on the clipboard so the user can manually paste it!
+        guard AccessibilityHelper.shared.isAccessibilityGranted() else {
+            AppLogger.shared.warning("Accessibility permission missing; transcribed text copied to clipboard, but auto-paste Cmd+V is blocked by macOS.")
+            return false
+        }
+        
         // 3. Synthesize Command + V keystroke
         let source = CGEventSource(stateID: .hidSystemState)
         let vKeyCode: CGKeyCode = 0x09 // Virtual key code for 'V'

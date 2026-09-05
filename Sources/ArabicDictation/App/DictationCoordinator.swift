@@ -110,14 +110,18 @@ public final class DictationCoordinator: ObservableObject {
                 await MainActor.run {
                     self.isTranscribing = false
                     MenuBarManager.shared.updateState(isRecording: false, isTranscribing: false)
-                    FloatingHUDWindowController.shared.show(state: .done)
                     SoundEffects.shared.play(.transcriptionSuccess, enabled: settings.playSoundEffects)
                     
                     if settings.pasteAutomatically {
                         let pasted = PasteManager.shared.pasteText(text)
-                        if !pasted && !AccessibilityHelper.shared.isAccessibilityGranted() {
-                            FloatingHUDWindowController.shared.show(state: .error("Accessibility permission required to paste text."))
+                        if pasted {
+                            FloatingHUDWindowController.shared.show(state: .done)
+                        } else {
+                            FloatingHUDWindowController.shared.show(state: .error("Text copied! Enable Accessibility in Settings to auto-paste."))
                         }
+                    } else {
+                        PasteManager.shared.pasteText(text, restoreClipboard: false)
+                        FloatingHUDWindowController.shared.show(state: .done)
                     }
                 }
             } catch {
