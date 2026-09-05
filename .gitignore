@@ -1,0 +1,28 @@
+# Xcode / Swift Package Manager
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Temporary files & Audio
+*.wav
+*.m4a
+*.mp3
+*.tmp
+tmp/
+
+# Secrets & Environment
+*.env
+*.key
+*.pem
+*.p12
+*.secret
