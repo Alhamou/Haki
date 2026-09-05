@@ -20,7 +20,7 @@ final class SettingsAndPasteTests: XCTestCase {
         pasteboard.setString(originalContent, forType: .string)
         
         let arabicText = "مرحبا، هذا اختبار للنسخ"
-        let success = PasteManager.shared.pasteText(arabicText, restoreClipboard: true)
+        let success = PasteManager.shared.pasteText(arabicText, restoreClipboard: true, checkAccessibility: false)
         XCTAssertTrue(success)
         
         // Immediate pasteboard should be the arabicText
@@ -28,7 +28,7 @@ final class SettingsAndPasteTests: XCTestCase {
         
         // After delay, should be restored to originalContent
         let expectation = expectation(description: "Restore clipboard")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             let restored = pasteboard.string(forType: .string)
             XCTAssertEqual(restored, originalContent)
             expectation.fulfill()

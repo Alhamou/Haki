@@ -22,7 +22,7 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         
         if let button = item.button {
             button.imagePosition = .imageLeading
-            button.toolTip = "Arabic Dictation (Option + Space)"
+            button.toolTip = "Arabic Dictation (\(AppSettings.shared.shortcut.displayString))"
         }
         
         updateIcon()
@@ -32,6 +32,18 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         item.menu = menu
         
         rebuildMenu(menu)
+    }
+    
+    public func updateShortcutDisplay() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if let button = self.statusItem?.button {
+                button.toolTip = "Arabic Dictation (\(AppSettings.shared.shortcut.displayString))"
+            }
+            if let menu = self.statusItem?.menu {
+                self.rebuildMenu(menu)
+            }
+        }
     }
     
     public func updateState(isRecording: Bool, isTranscribing: Bool) {
@@ -94,7 +106,7 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         } else if isTranscribing {
             statusTitle = "⏳ Transcribing via OpenAI..."
         } else {
-            statusTitle = "Arabic Dictation (Option + Space)"
+            statusTitle = "Arabic Dictation (\(AppSettings.shared.shortcut.displayString))"
         }
         let header = NSMenuItem(title: statusTitle, action: nil, keyEquivalent: "")
         header.isEnabled = false
@@ -103,9 +115,8 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         menu.addItem(NSMenuItem.separator())
         
         // Dictation Toggle
-        let toggleTitle = isRecording ? "Stop Dictation" : "Start Dictation"
-        let dictationItem = NSMenuItem(title: toggleTitle, action: #selector(toggleDictationClicked), keyEquivalent: " ")
-        dictationItem.keyEquivalentModifierMask = [.option]
+        let toggleTitle = isRecording ? "Stop Dictation" : "Start Dictation (\(AppSettings.shared.shortcut.displayString))"
+        let dictationItem = NSMenuItem(title: toggleTitle, action: #selector(toggleDictationClicked), keyEquivalent: "")
         dictationItem.target = self
         menu.addItem(dictationItem)
         self.dictationMenuItem = dictationItem

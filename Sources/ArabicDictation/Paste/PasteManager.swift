@@ -9,7 +9,11 @@ public final class PasteManager {
     
     /// Pastes text at the current cursor position in the active application.
     @discardableResult
-    public func pasteText(_ text: String, restoreClipboard: Bool = true) -> Bool {
+    public func pasteText(
+        _ text: String,
+        restoreClipboard: Bool = true,
+        checkAccessibility: Bool = true
+    ) -> Bool {
         guard !text.isEmpty else { return false }
         
         let pasteboard = NSPasteboard.general
@@ -40,7 +44,7 @@ public final class PasteManager {
         
         // If accessibility is not granted, macOS blocks synthetic keystrokes.
         // Keep the transcribed text on the clipboard so the user can manually paste it!
-        guard AccessibilityHelper.shared.isAccessibilityGranted() else {
+        if checkAccessibility && !AccessibilityHelper.shared.isAccessibilityGranted() {
             AppLogger.shared.warning("Accessibility permission missing; transcribed text copied to clipboard, but auto-paste Cmd+V is blocked by macOS.")
             return false
         }

@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import ServiceManagement
 import Combine
 
@@ -31,6 +32,15 @@ public final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(showDebugLogs, forKey: "ShowDebugLogs") }
     }
     
+    // MARK: - Shortcut Settings
+    @Published public var shortcut: ShortcutConfig {
+        didSet {
+            if let data = try? JSONEncoder().encode(shortcut) {
+                UserDefaults.standard.set(data, forKey: "CustomShortcutConfig")
+            }
+        }
+    }
+    
     // MARK: - Launch at Login
     @Published public var launchAtLogin: Bool = false
     
@@ -56,6 +66,13 @@ public final class AppSettings: ObservableObject {
         }
         
         self.showDebugLogs = UserDefaults.standard.bool(forKey: "ShowDebugLogs")
+        
+        if let data = UserDefaults.standard.data(forKey: "CustomShortcutConfig"),
+           let decoded = try? JSONDecoder().decode(ShortcutConfig.self, from: data) {
+            self.shortcut = decoded
+        } else {
+            self.shortcut = .defaultShortcut
+        }
         
         // Refresh Keychain state
         self.refreshAPIKeyState()
@@ -113,5 +130,18 @@ public final class AppSettings: ObservableObject {
                 AppLogger.shared.error("Failed to update launch at login: \(error.localizedDescription)")
             }
         }
+    }
+    
+    // MARK: - Shortcut Management
+    public func setShortcut(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) {
+        self.shortcut = ShortcutConfig(keyCode: keyCode, modifiers: modifiers)
+        PushToTalkManager.shared.updateShortcut()
+        MenuBarManager.shared.updateShortcutDisplay()
+    }
+    
+    public func resetShortcutToDefault() {
+        self.shortcut = .defaultShortcut
+        PushToTalkManager.shared.updateShortcut()
+        MenuBarManager.shared.updateShortcutDisplay()
     }
 }

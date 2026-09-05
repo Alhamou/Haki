@@ -12,6 +12,8 @@ public struct SettingsView: View {
     @State private var apiTestStatus: String?
     @State private var apiTestSuccess: Bool?
     @State private var selectedTab: SettingsTab = .transcription
+    @State private var isRecordingShortcut = false
+    @State private var localKeyMonitor: Any?
     
     public init() {}
     
@@ -265,21 +267,85 @@ public struct SettingsView: View {
     
     // MARK: - Keyboard Tab
     private var keyboardSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 18) {
             Text("Global Push-to-Talk Shortcut")
                 .font(.headline)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text("Hold the shortcut while speaking, then release to transcribe and paste:")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
-                HStack(spacing: 8) {
-                    KeyCapView(text: "⌥ Option")
-                    Text("+")
-                    KeyCapView(text: "Space")
+                HStack(spacing: 12) {
+                    Button(action: {
+                        if isRecordingShortcut {
+                            stopRecordingShortcut()
+                        } else {
+                            startRecordingShortcut()
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            if isRecordingShortcut {
+                                Circle()
+                                    .fill(Color.orange)
+                                    .frame(width: 8, height: 8)
+                                Text("Press shortcut keys now… (Esc to cancel)")
+                                    .foregroundColor(.orange)
+                                    .font(.system(size: 13, weight: .medium))
+                            } else {
+                                ForEach(settings.shortcut.keyParts, id: \.self) { part in
+                                    KeyCapView(text: part)
+                                }
+                                Image(systemName: "pencil.circle.fill")
+                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 14))
+                            }
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(isRecordingShortcut ? Color.orange.opacity(0.15) : Color(NSColor.controlBackgroundColor))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(isRecordingShortcut ? Color.orange : Color.gray.opacity(0.3), lineWidth: isRecordingShortcut ? 1.5 : 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    
+                    if settings.shortcut != .defaultShortcut {
+                        Button("Reset to Default") {
+                            stopRecordingShortcut()
+                            settings.resetShortcutToDefault()
+                        }
+                        .font(.caption)
+                    }
                 }
-                .padding(.vertical, 4)
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Quick Presets:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 8) {
+                        PresetButton(title: "⌥ Option + Space", active: settings.shortcut.displayString == "⌥ Option + Space") {
+                            stopRecordingShortcut()
+                            settings.setShortcut(keyCode: 49, modifiers: .option)
+                        }
+                        PresetButton(title: "⌃ Control + Space", active: settings.shortcut.displayString == "⌃ Control + Space") {
+                            stopRecordingShortcut()
+                            settings.setShortcut(keyCode: 49, modifiers: .control)
+                        }
+                        PresetButton(title: "⌥ Option + D", active: settings.shortcut.displayString == "⌥ Option + D") {
+                            stopRecordingShortcut()
+                            settings.setShortcut(keyCode: 2, modifiers: .option)
+                        }
+                        PresetButton(title: "⌘ ⇧ Space", active: settings.shortcut.displayString == "⇧ Shift + ⌘ Command + Space") {
+                            stopRecordingShortcut()
+                            settings.setShortcut(keyCode: 49, modifiers: [.command, .shift])
+                        }
+                    }
+                }
+                .padding(.top, 4)
             }
             
             Divider()
@@ -401,6 +467,59 @@ public struct SettingsView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Shortcut Recording
+    private func startRecordingShortcut() {
+        stopRecordingShortcut()
+        isRecordingShortcut = true
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+            // Cancel on Escape without modifiers
+            if event.keyCode == 53 && event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty {
+                stopRecordingShortcut()
+                return nil
+            }
+            
+            let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
+            if !flags.isEmpty || (event.keyCode >= 120 && event.keyCode <= 122) || (event.keyCode >= 96 && event.keyCode <= 111) {
+                settings.setShortcut(keyCode: event.keyCode, modifiers: flags)
+                stopRecordingShortcut()
+                return nil
+            }
+            return event
+        }
+    }
+    
+    private func stopRecordingShortcut() {
+        isRecordingShortcut = false
+        if let monitor = localKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            localKeyMonitor = nil
+        }
+    }
+}
+
+// MARK: - PresetButton UI Component
+private struct PresetButton: View {
+    let title: String
+    let active: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 11, weight: active ? .semibold : .regular))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(active ? Color.accentColor.opacity(0.2) : Color.gray.opacity(0.12))
+                .cornerRadius(6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(active ? Color.accentColor : Color.clear, lineWidth: 1)
+                )
+                .foregroundColor(active ? .accentColor : .primary)
+        }
+        .buttonStyle(.plain)
     }
 }
 

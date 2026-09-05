@@ -13,10 +13,19 @@ public final class PushToTalkManager {
     private(set) var isListening = false
     private var isKeyDownActive = false
     
-    // Virtual key code 49 is Space Bar
-    private let targetKeyCode: Int64 = 49
+    private var targetKeyCode: Int64 = 49
+    private var targetModifiers: NSEvent.ModifierFlags = .option
     
-    public init() {}
+    public init() {
+        updateShortcut()
+    }
+    
+    public func updateShortcut() {
+        let current = AppSettings.shared.shortcut
+        self.targetKeyCode = Int64(current.keyCode)
+        self.targetModifiers = current.modifiers
+        AppLogger.shared.info("Push-to-Talk shortcut updated to: \(current.displayString)")
+    }
     
     deinit {
         stop()
@@ -24,6 +33,7 @@ public final class PushToTalkManager {
     
     public func start() {
         guard !isListening else { return }
+        updateShortcut()
         
         guard AccessibilityHelper.shared.isAccessibilityGranted() else {
             AppLogger.shared.warning("Accessibility permission not granted; global shortcut cannot be registered yet.")
@@ -61,7 +71,7 @@ public final class PushToTalkManager {
         CGEvent.tapEnable(tap: tap, enable: true)
         
         isListening = true
-        AppLogger.shared.info("Global Push-to-Talk (Option + Space) event tap registered successfully.")
+        AppLogger.shared.info("Global Push-to-Talk (\(AppSettings.shared.shortcut.displayString)) event tap registered successfully.")
     }
     
     public func stop() {
@@ -93,28 +103,27 @@ public final class PushToTalkManager {
         
         let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
         let flags = event.flags
-        let isOptionPressed = flags.contains(.maskAlternate)
-        let hasNoOtherModifiers = !flags.contains(.maskCommand) && !flags.contains(.maskControl)
+        let modifierMatches = checkModifiersMatch(flags: flags, target: targetModifiers)
         
         switch type {
         case .keyDown:
-            if keyCode == targetKeyCode && isOptionPressed && hasNoOtherModifiers {
+            if keyCode == targetKeyCode && modifierMatches {
                 let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
                 if !isRepeat && !isKeyDownActive {
                     isKeyDownActive = true
-                    AppLogger.shared.info("Push-to-Talk triggered: Option+Space keyDown")
+                    AppLogger.shared.info("Push-to-Talk triggered: \(keyCode) keyDown")
                     DispatchQueue.main.async { [weak self] in
                         self?.onStartRecording?()
                     }
                 }
-                // Suppress the space key so it isn't typed into the active app
+                // Suppress key so it isn't typed into the active app
                 return nil
             }
             
         case .keyUp:
             if keyCode == targetKeyCode && isKeyDownActive {
                 isKeyDownActive = false
-                AppLogger.shared.info("Push-to-Talk released: Option+Space keyUp")
+                AppLogger.shared.info("Push-to-Talk released: \(keyCode) keyUp")
                 DispatchQueue.main.async { [weak self] in
                     self?.onStopRecording?()
                 }
@@ -122,10 +131,10 @@ public final class PushToTalkManager {
             }
             
         case .flagsChanged:
-            // If user releases the Option key while recording, stop recording
-            if isKeyDownActive && !isOptionPressed {
+            // If user releases required modifiers while key is down, stop recording
+            if isKeyDownActive && !modifierMatches {
                 isKeyDownActive = false
-                AppLogger.shared.info("Push-to-Talk released: Option key released")
+                AppLogger.shared.info("Push-to-Talk released: modifier key released")
                 DispatchQueue.main.async { [weak self] in
                     self?.onStopRecording?()
                 }
@@ -136,5 +145,22 @@ public final class PushToTalkManager {
         }
         
         return Unmanaged.passRetained(event)
+    }
+    
+    private func checkModifiersMatch(flags: CGEventFlags, target: NSEvent.ModifierFlags) -> Bool {
+        let isOption = flags.contains(.maskAlternate)
+        let isControl = flags.contains(.maskControl)
+        let isCommand = flags.contains(.maskCommand)
+        let isShift = flags.contains(.maskShift)
+        
+        let wantOption = target.contains(.option)
+        let wantControl = target.contains(.control)
+        let wantCommand = target.contains(.command)
+        let wantShift = target.contains(.shift)
+        
+        return (isOption == wantOption) &&
+               (isControl == wantControl) &&
+               (isCommand == wantCommand) &&
+               (isShift == wantShift)
     }
 }
