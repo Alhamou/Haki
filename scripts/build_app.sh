@@ -47,7 +47,7 @@ else
     echo "Signing application bundle with certificate: $SIGN_IDENTITY..."
 fi
 
-ENTITLEMENTS="$PROJECT_DIR/Resources/ArabicDictation.entitlements"
+ENTITLEMENTS="$PROJECT_DIR/Resources/Haki.entitlements"
 codesign -s "$SIGN_IDENTITY" --force --deep --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
 
 echo "Application built successfully at: $APP_BUNDLE"

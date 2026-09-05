@@ -9,20 +9,20 @@ let package = Package(
     products: [
         .executable(
             name: "Haki",
-            targets: ["ArabicDictation"]
+            targets: ["Haki"]
         )
     ],
     dependencies: [],
     targets: [
         .executableTarget(
-            name: "ArabicDictation",
+            name: "Haki",
             dependencies: [],
-            path: "Sources/ArabicDictation"
+            path: "Sources/Haki"
         ),
         .testTarget(
-            name: "ArabicDictationTests",
-            dependencies: ["ArabicDictation"],
-            path: "Tests/ArabicDictationTests"
+            name: "HakiTests",
+            dependencies: ["Haki"],
+            path: "Tests/HakiTests"
         )
     ]
 )

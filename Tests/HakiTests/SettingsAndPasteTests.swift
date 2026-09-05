@@ -1,6 +1,6 @@
 import XCTest
 import AppKit
-@testable import ArabicDictation
+@testable import Haki
 
 final class SettingsAndPasteTests: XCTestCase {
     

@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct ArabicDictationApp: App {
+struct HakiApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {

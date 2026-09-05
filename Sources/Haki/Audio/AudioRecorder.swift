@@ -26,7 +26,7 @@ public final class AudioRecorder: ObservableObject {
     private var rmsCount: Int = 0
     private var peakRMSValue: Float = 0
     
-    private let queue = DispatchQueue(label: "com.arabicdictation.audiorecorder", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.alhamou.haki.audiorecorder", qos: .userInitiated)
     
     public init() {}
     

@@ -148,8 +148,8 @@ Haki/
 ├── Resources/
 │   ├── AppIcon.icns            # Native 1024x1024 macOS app icon
 │   ├── Info.plist              # Bundle metadata (LSUIElement, permissions)
-│   └── ArabicDictation.entitlements # Audio input & network client entitlements
-├── Sources/ArabicDictation/
+│   └── Haki.entitlements # Audio input & network client entitlements
+├── Sources/Haki/
 │   ├── App/                    # App lifecycle, AppDelegate, MenuBarManager
 │   ├── Audio/                  # AudioRecorder, AudioDeviceManager (CoreAudio HAL)
 │   ├── HotKey/                 # GlobalHotkeyManager (CGEventTap)
@@ -158,7 +158,7 @@ Haki/
 │   ├── Network/                # OpenAIService, KeychainHelper, TranscriptionModel
 │   ├── UI/Settings/            # AppSettings, SettingsView, SettingsWindowController
 │   └── Utilities/              # AppLogger
-├── Tests/ArabicDictationTests/ # Unit & integration test suites
+├── Tests/HakiTests/ # Unit & integration test suites
 ├── scripts/
 │   ├── build_app.sh            # Packaging & codesigning script (builds Haki.app)
 │   ├── generate_icon.swift     # CoreGraphics 1024x1024 master icon generator

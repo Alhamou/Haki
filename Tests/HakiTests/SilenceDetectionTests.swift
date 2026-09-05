@@ -1,6 +1,6 @@
 import XCTest
 import AVFoundation
-@testable import ArabicDictation
+@testable import Haki
 
 final class SilenceDetectionTests: XCTestCase {
     

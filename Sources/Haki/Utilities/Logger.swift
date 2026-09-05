@@ -4,7 +4,7 @@ import os.log
 public final class AppLogger {
     public static let shared = AppLogger()
     
-    private let osLogger = os.Logger(subsystem: "com.arabicdictation.ArabicDictation", category: "General")
+    private let osLogger = os.Logger(subsystem: "com.alhamou.haki", category: "General")
     private let lock = NSLock()
     private var logs: [String] = []
     private let maxLogCount = 200

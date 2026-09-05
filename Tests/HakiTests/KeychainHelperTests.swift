@@ -1,5 +1,5 @@
 import XCTest
-@testable import ArabicDictation
+@testable import Haki
 
 final class KeychainHelperTests: XCTestCase {
     let testService = "com.arabicdictation.test"
