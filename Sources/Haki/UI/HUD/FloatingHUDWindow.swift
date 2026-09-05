@@ -36,7 +36,7 @@ public final class FloatingHUDWindowController {
             self.dismissTimer?.invalidate()
             self.dismissTimer = nil
             
-            if state == .idle {
+            if state == .idle || !AppSettings.shared.showFloatingHUD {
                 self.hide()
                 return
             }

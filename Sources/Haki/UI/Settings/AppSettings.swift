@@ -32,6 +32,10 @@ public final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(showDebugLogs, forKey: "ShowDebugLogs") }
     }
     
+    @Published public var showFloatingHUD: Bool {
+        didSet { UserDefaults.standard.set(showFloatingHUD, forKey: "ShowFloatingHUD") }
+    }
+    
     // MARK: - Shortcut Settings
     @Published public var shortcut: ShortcutConfig {
         didSet {
@@ -47,11 +51,13 @@ public final class AppSettings: ObservableObject {
     // MARK: - Keychain API Key State
     @Published public var hasAPIKey: Bool = false
     
+    public static let defaultPromptContext = "Transcribe faithfully in Arabic. Preserve Syrian and Levantine dialect, names, places, numbers, and mixed Arabic-English words. Do not rewrite the meaning."
+    
     private init() {
         // Default values: gpt-transcribe is the recommended default
         self.model = TranscriptionModel.from(rawString: UserDefaults.standard.string(forKey: "TranscriptionModel"))
         self.language = UserDefaults.standard.string(forKey: "TranscriptionLanguage") ?? "ar"
-        self.promptContext = UserDefaults.standard.string(forKey: "TranscriptionPrompt") ?? "Transcribe faithfully in Arabic. Preserve Syrian and Levantine dialect, names, places, numbers, and mixed Arabic-English words. Do not rewrite the meaning."
+        self.promptContext = UserDefaults.standard.string(forKey: "TranscriptionPrompt") ?? Self.defaultPromptContext
         
         if UserDefaults.standard.object(forKey: "PasteAutomatically") != nil {
             self.pasteAutomatically = UserDefaults.standard.bool(forKey: "PasteAutomatically")
@@ -63,6 +69,12 @@ public final class AppSettings: ObservableObject {
             self.playSoundEffects = UserDefaults.standard.bool(forKey: "PlaySoundEffects")
         } else {
             self.playSoundEffects = true
+        }
+        
+        if UserDefaults.standard.object(forKey: "ShowFloatingHUD") != nil {
+            self.showFloatingHUD = UserDefaults.standard.bool(forKey: "ShowFloatingHUD")
+        } else {
+            self.showFloatingHUD = true
         }
         
         self.showDebugLogs = UserDefaults.standard.bool(forKey: "ShowDebugLogs")
@@ -143,5 +155,17 @@ public final class AppSettings: ObservableObject {
         self.shortcut = .defaultShortcut
         PushToTalkManager.shared.updateShortcut()
         MenuBarManager.shared.updateShortcutDisplay()
+    }
+    
+    public func resetToDefaults() {
+        self.model = .defaultModel
+        self.language = "ar"
+        self.promptContext = Self.defaultPromptContext
+        self.pasteAutomatically = true
+        self.playSoundEffects = true
+        self.showFloatingHUD = true
+        self.showDebugLogs = false
+        resetShortcutToDefault()
+        AppLogger.shared.info("Settings reset to defaults.")
     }
 }

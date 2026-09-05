@@ -11,6 +11,23 @@ final class SettingsAndPasteTests: XCTestCase {
         XCTAssertTrue(settings.promptContext.contains("Syrian and Levantine dialect"))
         XCTAssertTrue(settings.pasteAutomatically)
         XCTAssertTrue(settings.playSoundEffects)
+        XCTAssertTrue(settings.showFloatingHUD)
+    }
+    
+    func testResetToDefaults() {
+        let settings = AppSettings.shared
+        settings.pasteAutomatically = false
+        settings.showFloatingHUD = false
+        settings.promptContext = "Temporary prompt"
+        
+        settings.resetToDefaults()
+        
+        XCTAssertTrue(settings.pasteAutomatically)
+        XCTAssertTrue(settings.showFloatingHUD)
+        XCTAssertTrue(settings.playSoundEffects)
+        XCTAssertEqual(settings.model, .gptTranscribe)
+        XCTAssertEqual(settings.promptContext, AppSettings.defaultPromptContext)
+        XCTAssertEqual(settings.shortcut, .defaultShortcut)
     }
     
     func testPasteManagerClipboardPreservation() {
