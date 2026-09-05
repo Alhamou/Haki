@@ -11,6 +11,7 @@ public final class SettingsWindowController {
     
     public func showSettings() {
         if let existing = window {
+            existing.orderFrontRegardless()
             existing.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
@@ -31,6 +32,7 @@ public final class SettingsWindowController {
         win.isReleasedWhenClosed = false
         
         self.window = win
+        win.orderFrontRegardless()
         win.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }

@@ -20,6 +20,11 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.statusItem = item
         
+        if let button = item.button {
+            button.imagePosition = .imageLeading
+            button.toolTip = "Arabic Dictation (Option + Space)"
+        }
+        
         updateIcon()
         
         let menu = NSMenu()
@@ -46,23 +51,26 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
         guard let button = statusItem?.button else { return }
         
         if isRecording {
-            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+            let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .bold)
             if let image = NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: "Recording")?.withSymbolConfiguration(config) {
                 image.isTemplate = false
                 button.image = tintImage(image, with: .systemRed)
             }
+            button.title = " تسجيل..."
         } else if isTranscribing {
-            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+            let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .regular)
             if let image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: "Transcribing")?.withSymbolConfiguration(config) {
                 image.isTemplate = true
                 button.image = image
             }
+            button.title = " معالجة..."
         } else {
-            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+            let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
             if let image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Arabic Dictation")?.withSymbolConfiguration(config) {
                 image.isTemplate = true
                 button.image = image
             }
+            button.title = " عربي"
         }
     }
     
