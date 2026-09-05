@@ -28,5 +28,9 @@ final class ShortcutTests: XCTestCase {
         XCTAssertEqual(ShortcutHelper.keyName(for: 36), "Return")
         XCTAssertEqual(ShortcutHelper.keyName(for: 0), "A")
         XCTAssertEqual(ShortcutHelper.keyName(for: 122), "F1")
+        XCTAssertEqual(ShortcutHelper.keyName(for: 10), "§")
+        XCTAssertEqual(ShortcutHelper.keyName(for: 123), "Left Arrow")
+        XCTAssertEqual(ShortcutHelper.keyName(for: 126), "Up Arrow")
+        XCTAssertEqual(ShortcutHelper.keyName(for: 76), "Keypad Enter")
     }
 }
