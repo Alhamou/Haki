@@ -20,7 +20,7 @@ public final class AudioDeviceManager: ObservableObject {
     public static let shared = AudioDeviceManager()
     
     @Published public private(set) var availableDevices: [AudioInputDevice] = []
-    @Published public var selectedDevice: AudioInputDevice? {
+    @Published public private(set) var selectedDevice: AudioInputDevice? {
         didSet {
             if let uid = selectedDevice?.uid {
                 UserDefaults.standard.set(uid, forKey: "SelectedAudioInputDeviceUID")
@@ -28,10 +28,18 @@ public final class AudioDeviceManager: ObservableObject {
             }
         }
     }
-    
+    /// When enabled, the preferred input is picked automatically:
+    /// AirPods/Bluetooth first, then USB, falling back to the system default.
+    @Published public var autoSelectPreferred: Bool {
+        didSet {
+            UserDefaults.standard.set(autoSelectPreferred, forKey: "AutoSelectPreferredMicrophone")
+        }
+    }
+
     private var isObserving = false
-    
+
     public init() {
+        self.autoSelectPreferred = UserDefaults.standard.object(forKey: "AutoSelectPreferredMicrophone") as? Bool ?? true
         refreshDevices()
         setupListeners()
     }
@@ -90,7 +98,12 @@ public final class AudioDeviceManager: ObservableObject {
         
         DispatchQueue.main.async {
             self.availableDevices = inputs
-            
+
+            if self.autoSelectPreferred, let best = inputs.min(by: self.preferenceRank) {
+                self.selectedDevice = best
+                return
+            }
+
             // Re-resolve selected device
             let savedUID = UserDefaults.standard.string(forKey: "SelectedAudioInputDeviceUID")
             if let savedUID = savedUID, let matching = inputs.first(where: { $0.uid == savedUID }) {
@@ -101,6 +114,37 @@ public final class AudioDeviceManager: ObservableObject {
                 self.selectedDevice = inputs.first
             }
         }
+    }
+
+    /// Lower ranks win. AirPods (by name) rank above generic Bluetooth devices,
+    /// then USB devices, then everything else.
+    private func preferenceRank(_ lhs: AudioInputDevice, _ rhs: AudioInputDevice) -> Bool {
+        deviceRank(lhs) < deviceRank(rhs)
+    }
+
+    private func deviceRank(_ device: AudioInputDevice) -> Int {
+        let name = device.name.lowercased()
+        if name.contains("airpods") { return 0 }
+        switch transportType(deviceID: device.id) {
+        case kAudioDeviceTransportTypeBluetooth, kAudioDeviceTransportTypeBluetoothLE:
+            return 1
+        case kAudioDeviceTransportTypeUSB:
+            return 2
+        default:
+            return 3
+        }
+    }
+
+    private func transportType(deviceID: AudioDeviceID) -> UInt32 {
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyTransportType,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var transport: UInt32 = 0
+        var dataSize = UInt32(MemoryLayout<UInt32>.size)
+        let status = AudioObjectGetPropertyData(deviceID, &propertyAddress, 0, nil, &dataSize, &transport)
+        return status == noErr ? transport : 0
     }
     
     public func selectDevice(uid: String) {

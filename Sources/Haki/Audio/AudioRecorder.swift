@@ -20,6 +20,8 @@ public final class AudioRecorder: ObservableObject {
     private var audioEngine: AVAudioEngine?
     private var audioFile: AVAudioFile?
     private var tempFileURL: URL?
+    private var writeFormat: AVAudioFormat?
+    private var converter: AVAudioConverter?
     
     private var startTime: CFAbsoluteTime = 0
     private var totalRMSAccumulator: Float = 0
@@ -91,17 +93,17 @@ public final class AudioRecorder: ObservableObject {
         
         AppLogger.shared.info("Recording stopped. Duration: \(String(format: "%.2f", duration))s, Avg RMS: \(String(format: "%.4f", avgRMS)), Peak: \(String(format: "%.4f", peakRMS))")
         
-        // Check for silent audio or zero-energy input
-        if SilenceDetector.isSilent(duration: duration, averageRMS: avgRMS, maxRMS: peakRMS) {
+        if duration < SilenceDetector.minSpeechDuration {
             try? FileManager.default.removeItem(at: url)
             tempFileURL = nil
-            if duration < SilenceDetector.minSpeechDuration {
-                AppLogger.shared.warning("Recording was too short (\(String(format: "%.2f", duration))s)")
-                throw TranscriptionError.emptyAudio
-            } else {
-                AppLogger.shared.warning("Silent audio detected (Avg RMS: \(avgRMS))")
-                throw TranscriptionError.silenceDetected
-            }
+            AppLogger.shared.warning("Recording was too short (\(String(format: "%.2f", duration))s)")
+            throw TranscriptionError.emptyAudio
+        }
+
+        // Low RMS alone is not decisive (mic gain varies); let the transcription
+        // API judge actual speech content instead of discarding audio locally.
+        if avgRMS < SilenceDetector.defaultSilenceRMSThreshold {
+            AppLogger.shared.warning("Low audio energy (Avg RMS: \(avgRMS), Peak: \(peakRMS)); sending anyway")
         }
         
         return RecordingResult(
@@ -142,23 +144,38 @@ public final class AudioRecorder: ObservableObject {
         }
         
         let inputFormat = inputNode.outputFormat(forBus: 0)
-        guard inputFormat.channelCount > 0 else {
-            AppLogger.shared.error("Input format has 0 channels. Device might be disconnected.")
+        guard inputFormat.channelCount > 0, inputFormat.sampleRate > 0 else {
+            AppLogger.shared.error("Input format invalid (\(inputFormat.channelCount) ch, \(inputFormat.sampleRate) Hz). Device might be disconnected.")
             throw TranscriptionError.emptyAudio
         }
-        
+
         if recordToFile {
             let tempDir = FileManager.default.temporaryDirectory
             let uniqueURL = tempDir.appendingPathComponent("dictation_\(UUID().uuidString).wav")
             self.tempFileURL = uniqueURL
-            
-            // Standard WAV format settings matching hardware input format
-            self.audioFile = try AVAudioFile(
-                forWriting: uniqueURL,
-                settings: inputFormat.settings,
-                commonFormat: inputFormat.commonFormat,
-                interleaved: inputFormat.isInterleaved
-            )
+
+            // OpenAI rejects raw device formats; write a standard 16-bit mono WAV.
+            // WAV also cannot hold non-interleaved data, so downmix to 1 channel.
+            guard let monoFormat = AVAudioFormat(
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: inputFormat.sampleRate,
+                channels: 1,
+                interleaved: true
+            ) else {
+                throw TranscriptionError.emptyAudio
+            }
+            let wavSettings: [String: Any] = [
+                AVFormatIDKey: kAudioFormatLinearPCM,
+                AVSampleRateKey: inputFormat.sampleRate,
+                AVNumberOfChannelsKey: 1,
+                AVLinearPCMBitDepthKey: 16,
+                AVLinearPCMIsFloatKey: false,
+                AVLinearPCMIsBigEndianKey: false,
+                AVLinearPCMIsNonInterleaved: false
+            ]
+            self.audioFile = try AVAudioFile(forWriting: uniqueURL, settings: wavSettings)
+            self.writeFormat = monoFormat
+            self.converter = AVAudioConverter(from: inputFormat, to: monoFormat)
         }
         
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { [weak self] buffer, _ in
@@ -180,7 +197,9 @@ public final class AudioRecorder: ObservableObject {
                     }
                     
                     do {
-                        try self.audioFile?.write(from: buffer)
+                        if let converted = self.convertedBuffer(from: buffer) {
+                            try self.audioFile?.write(from: converted)
+                        }
                     } catch {
                         AppLogger.shared.error("Error writing audio buffer: \(error.localizedDescription)")
                     }
@@ -193,12 +212,43 @@ public final class AudioRecorder: ObservableObject {
         self.audioEngine = engine
     }
     
+    /// Converts a raw device buffer to the mono float format backing the WAV file.
+    private func convertedBuffer(from buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+        guard let converter = converter, let writeFormat = writeFormat else { return buffer }
+        let ratio = writeFormat.sampleRate / buffer.format.sampleRate
+        let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * ratio)) + 32
+        guard let out = AVAudioPCMBuffer(pcmFormat: writeFormat, frameCapacity: capacity) else {
+            return nil
+        }
+        var fed = false
+        var conversionError: NSError?
+        let status = converter.convert(to: out, error: &conversionError) { _, outStatus in
+            if fed {
+                outStatus.pointee = .noDataNow
+                return nil
+            }
+            fed = true
+            outStatus.pointee = .haveData
+            return buffer
+        }
+        if let conversionError = conversionError {
+            AppLogger.shared.error("Audio conversion failed: \(conversionError.localizedDescription)")
+            return nil
+        }
+        return status == .error ? nil : out
+    }
+
     private func tearDownEngine() {
         if let engine = audioEngine {
             engine.inputNode.removeTap(onBus: 0)
             engine.stop()
             self.audioEngine = nil
         }
+        // Wait for pending buffer writes on the serial queue before dropping
+        // the file handle, otherwise the tail of the recording is lost.
+        queue.sync {}
         self.audioFile = nil
+        self.converter = nil
+        self.writeFormat = nil
     }
 }

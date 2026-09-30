@@ -51,14 +51,11 @@ final class SilenceDetectionTests: XCTestCase {
         XCTAssertGreaterThan(powerVoiced, 0.5)
     }
     
-    func testIsSilentThresholdLogic() {
+    func testShortDurationCheck() {
         // Duration too short (< 0.35s)
-        XCTAssertTrue(SilenceDetector.isSilent(duration: 0.2, averageRMS: 0.1, maxRMS: 0.2))
-        
-        // Energy too low
-        XCTAssertTrue(SilenceDetector.isSilent(duration: 2.0, averageRMS: 0.001, maxRMS: 0.002))
-        
-        // Valid speech
-        XCTAssertFalse(SilenceDetector.isSilent(duration: 2.0, averageRMS: 0.05, maxRMS: 0.15))
+        XCTAssertTrue(SilenceDetector.isTooShort(duration: 0.2))
+
+        // Long enough for speech
+        XCTAssertFalse(SilenceDetector.isTooShort(duration: 2.0))
     }
 }

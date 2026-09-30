@@ -30,8 +30,8 @@ Zero local AI models. Zero Python. Zero Node.js runtime. Zero Electron. Zero hea
 - **Selectable Languages & Dialect Preservation**: Supports Arabic (`ar` with Levantine & Syrian dialect optimization), English (`en`), German (`de`), French (`fr`), and automatic language detection (`auto`).
 - **Modern Native macOS Settings**: Clean left sidebar navigation (General, Transcription, Audio, Shortcut, Advanced), native switch controls, and seamless Dark/Light mode.
 - **Menu Bar Resident (`LSUIElement`)**: Unobtrusive status bar presence with real-time state icons (Idle, Recording, Transcribing), device selector, model & language selectors, and one-click dictation toggle.
-- **Dynamic Microphone Selection**: Seamlessly switches between built-in microphones, USB audio interfaces, and AirPods with automatic reconnection handling via CoreAudio HAL.
-- **Live Input Level & Silence Rejection**: Real-time VU metering with automatic sound detection and silence rejection, preventing empty or accidental API requests.
+- **Dynamic Microphone Selection**: Seamlessly switches between built-in microphones, USB audio interfaces, and AirPods with automatic reconnection handling via CoreAudio HAL. Optionally prefers AirPods automatically when they connect, then USB microphones.
+- **Live Input Level Metering**: Real-time VU metering with microphone test mode; only accidental sub-0.35s taps are rejected locally — the transcription API judges actual speech content.
 - **Safe Clipboard Auto-Paste**: Preserves your existing clipboard contents by saving and restoring them after paste injection, without stealing focus from your active application.
 - **Secure Keychain Storage**: Your OpenAI API key is stored exclusively in the macOS Keychain (`Security.framework`). Never written to `UserDefaults`, plists, source files, or git.
 - **Zero Audio Footprint**: Audio is captured to temporary scratch files and deleted immediately upon completion or failure. No local audio history is ever retained.

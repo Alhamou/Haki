@@ -479,6 +479,19 @@ private struct AudioSettingsSection: View {
                             .labelsHidden()
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
+
+                        Toggle(isOn: Binding(
+                            get: { deviceManager.autoSelectPreferred },
+                            set: { newValue in
+                                deviceManager.autoSelectPreferred = newValue
+                                deviceManager.refreshDevices()
+                            }
+                        )) {
+                            Text("Prefer AirPods when connected, then USB microphones")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .toggleStyle(.switch)
                     }
                     
                     // Live Input Level Meter

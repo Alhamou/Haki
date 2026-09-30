@@ -8,16 +8,33 @@ public struct SilenceDetector {
     
     /// Calculates Root Mean Square (RMS) energy from audio buffer.
     public static func calculateRMS(buffer: AVAudioPCMBuffer) -> Float {
-        guard let channelData = buffer.floatChannelData?[0] else { return 0.0 }
+        guard let channelData = buffer.floatChannelData else { return 0.0 }
         let frameLength = Int(buffer.frameLength)
         guard frameLength > 0 else { return 0.0 }
-        
+
+        let channelCount = Int(buffer.format.channelCount)
         var sum: Float = 0.0
-        for i in 0..<frameLength {
-            let sample = channelData[i]
-            sum += sample * sample
+        var sampleCount = 0
+
+        if buffer.format.isInterleaved {
+            // Channel 0 holds all frames interleaved across every channel.
+            let stride = max(channelCount, 1)
+            let samples = channelData[0]
+            for i in 0..<(frameLength * stride) {
+                sum += samples[i] * samples[i]
+                sampleCount += 1
+            }
+        } else {
+            for c in 0..<max(channelCount, 1) {
+                let samples = channelData[c]
+                for i in 0..<frameLength {
+                    sum += samples[i] * samples[i]
+                    sampleCount += 1
+                }
+            }
         }
-        return sqrt(sum / Float(frameLength))
+        guard sampleCount > 0 else { return 0.0 }
+        return sqrt(sum / Float(sampleCount))
     }
     
     /// Converts an RMS value to a normalized 0.0 ... 1.0 level for UI meters.
@@ -30,19 +47,8 @@ public struct SilenceDetector {
         return (db - minDb) / abs(minDb)
     }
     
-    /// Checks whether the recorded audio is silent or too short to contain speech.
-    public static func isSilent(
-        duration: TimeInterval,
-        averageRMS: Float,
-        maxRMS: Float,
-        threshold: Float = defaultSilenceRMSThreshold
-    ) -> Bool {
-        if duration < minSpeechDuration {
-            return true
-        }
-        if averageRMS < threshold && maxRMS < (threshold * 1.8) {
-            return true
-        }
-        return false
+    /// Checks whether the recording is too short to contain speech.
+    public static func isTooShort(duration: TimeInterval) -> Bool {
+        duration < minSpeechDuration
     }
 }
