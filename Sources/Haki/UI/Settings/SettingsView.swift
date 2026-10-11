@@ -131,6 +131,13 @@ public struct SettingsView: View {
         }
         .padding(.horizontal, 6)
         .background(Color(NSColor.controlBackgroundColor))
+        // Stop any running microphone test when the Settings window closes,
+        // otherwise the mic stays open (stuck orange menu bar indicator).
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { note in
+            if let window = note.object as? NSWindow, window.isVisible == false {
+                audioRecorder.stopMicrophoneTest()
+            }
+        }
     }
     
     // MARK: - Footer View
@@ -595,6 +602,7 @@ private struct AudioSettingsSection: View {
 // MARK: - 4. Shortcut Settings Section
 private struct ShortcutSettingsSection: View {
     @ObservedObject var settings: AppSettings
+    @ObservedObject private var accessibilityHelper = AccessibilityHelper.shared
     
     @State private var isRecordingShortcut = false
     @State private var localKeyMonitor: Any?
@@ -723,7 +731,7 @@ private struct ShortcutSettingsSection: View {
             // Accessibility Permission Card
             SettingsCard(title: "System Permission") {
                 VStack(alignment: .leading, spacing: 8) {
-                    if AccessibilityHelper.shared.isAccessibilityGranted() {
+                    if accessibilityHelper.isGranted {
                         HStack(spacing: 8) {
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundColor(.green)

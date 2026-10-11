@@ -22,9 +22,12 @@ public final class AudioDeviceManager: ObservableObject {
     @Published public private(set) var availableDevices: [AudioInputDevice] = []
     @Published public private(set) var selectedDevice: AudioInputDevice? {
         didSet {
-            if let uid = selectedDevice?.uid {
-                UserDefaults.standard.set(uid, forKey: "SelectedAudioInputDeviceUID")
-                AppLogger.shared.info("Selected microphone: \(selectedDevice?.name ?? "Unknown") [\(uid)]")
+            if let dev = selectedDevice {
+                UserDefaults.standard.set(dev.uid, forKey: "SelectedAudioInputDeviceUID")
+                AppLogger.shared.info("Selected microphone: \(dev.name) [\(dev.uid)]")
+                if dev.id != getDefaultInputDeviceID() {
+                    setDefaultInputDevice(deviceID: dev.id)
+                }
             }
         }
     }
@@ -173,6 +176,29 @@ public final class AudioDeviceManager: ObservableObject {
             AppLogger.shared.warning("Failed to get default input device ID: \(status)")
         }
         return defaultID
+    }
+    
+    public func setDefaultInputDevice(deviceID: AudioDeviceID) {
+        guard deviceID != 0 else { return }
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var devID = deviceID
+        let status = AudioObjectSetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress,
+            0,
+            nil,
+            UInt32(MemoryLayout<AudioDeviceID>.size),
+            &devID
+        )
+        if status != noErr {
+            AppLogger.shared.warning("Failed to set default input device \(deviceID): \(status)")
+        } else {
+            AppLogger.shared.info("Set system default input device to \(deviceID)")
+        }
     }
     
     private func hasInputChannels(deviceID: AudioDeviceID) -> Bool {

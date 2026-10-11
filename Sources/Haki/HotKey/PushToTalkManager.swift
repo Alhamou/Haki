@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import CoreGraphics
+import Combine
 
 public final class PushToTalkManager {
     public static let shared = PushToTalkManager()
@@ -12,12 +13,23 @@ public final class PushToTalkManager {
     private var runLoopSource: CFRunLoopSource?
     private(set) var isListening = false
     private var isKeyDownActive = false
+    private var cancellables = Set<AnyCancellable>()
     
     private var targetKeyCode: Int64 = 49
     private var targetModifiers: NSEvent.ModifierFlags = .option
     
     public init() {
         updateShortcut()
+        
+        AccessibilityHelper.shared.$isGranted
+            .removeDuplicates()
+            .sink { [weak self] granted in
+                guard let self = self else { return }
+                if granted && !self.isListening {
+                    self.start()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     public func updateShortcut() {

@@ -93,10 +93,18 @@ public final class AudioRecorder: ObservableObject {
         
         AppLogger.shared.info("Recording stopped. Duration: \(String(format: "%.2f", duration))s, Avg RMS: \(String(format: "%.4f", avgRMS)), Peak: \(String(format: "%.4f", peakRMS))")
         
-        if duration < SilenceDetector.minSpeechDuration {
+        if duration < SilenceDetector.minSpeechDuration || rmsCount == 0 {
             try? FileManager.default.removeItem(at: url)
             tempFileURL = nil
-            AppLogger.shared.warning("Recording was too short (\(String(format: "%.2f", duration))s)")
+            AppLogger.shared.warning("Recording was too short or contained no audio frames (\(String(format: "%.2f", duration))s, buffers: \(rmsCount))")
+            throw TranscriptionError.emptyAudio
+        }
+
+        let fileSize = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64) ?? 0
+        if fileSize <= 4096 {
+            try? FileManager.default.removeItem(at: url)
+            tempFileURL = nil
+            AppLogger.shared.warning("Recorded file has no audio payload (\(fileSize) bytes).")
             throw TranscriptionError.emptyAudio
         }
 
@@ -130,19 +138,16 @@ public final class AudioRecorder: ObservableObject {
     
     // MARK: - Engine Setup & Tear Down
     private func setupAndStartEngine(deviceID: AudioDeviceID?, recordToFile: Bool) throws {
-        let engine = AVAudioEngine()
-        let inputNode = engine.inputNode
-        
-        // If deviceID specified, override AUAudioUnit
+        // If an explicit device ID is requested and differs from system default, align it via CoreAudio
         if let devID = deviceID, devID != 0 {
-            do {
-                try inputNode.auAudioUnit.setDeviceID(devID)
-                AppLogger.shared.info("Applied input device ID \(devID) to audio unit")
-            } catch {
-                AppLogger.shared.warning("Could not set device ID \(devID): \(error.localizedDescription)")
+            let currentDefault = AudioDeviceManager.shared.getDefaultInputDeviceID()
+            if devID != currentDefault {
+                AudioDeviceManager.shared.setDefaultInputDevice(deviceID: devID)
             }
         }
         
+        let engine = AVAudioEngine()
+        let inputNode = engine.inputNode
         let inputFormat = inputNode.outputFormat(forBus: 0)
         guard inputFormat.channelCount > 0, inputFormat.sampleRate > 0 else {
             AppLogger.shared.error("Input format invalid (\(inputFormat.channelCount) ch, \(inputFormat.sampleRate) Hz). Device might be disconnected.")
