@@ -39,7 +39,7 @@ if [ -f "$PROJECT_DIR/Resources/AppIcon.icns" ]; then
 fi
 
 # 4. Code sign with entitlements
-SIGN_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development:" | grep -v "REVOKED" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/' || true)
+SIGN_IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development:" | grep -v "REVOKED" | head -n 1 | awk '{print $2}' || true)
 if [ -z "$SIGN_IDENTITY" ]; then
     SIGN_IDENTITY="-"
     echo "Signing application bundle with ad-hoc signature..."
@@ -54,6 +54,7 @@ echo "Application built successfully at: $APP_BUNDLE"
 
 # 5. Install to /Applications
 echo "Installing to $DEST_APPLICATIONS..."
+killall Haki 2>/dev/null || true
 rm -rf "$DEST_APPLICATIONS"
 cp -R "$APP_BUNDLE" "$DEST_APPLICATIONS"
 echo "Successfully installed to $DEST_APPLICATIONS"

@@ -67,4 +67,17 @@ public final class AccessibilityHelper: ObservableObject {
             NSWorkspace.shared.open(url)
         }
     }
+    
+    /// Relaunches the application to ensure newly granted macOS accessibility permissions take effect.
+    public func relaunchApp() {
+        let bundleURL = Bundle.main.bundleURL
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: config) { _, _ in
+            DispatchQueue.main.async {
+                NSApp.terminate(nil)
+            }
+        }
+    }
 }
+

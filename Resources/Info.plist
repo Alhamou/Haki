@@ -28,6 +28,8 @@
     <true/>
     <key>NSMicrophoneUsageDescription</key>
     <string>Haki requires microphone access to record your voice for Arabic speech-to-text dictation.</string>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>Haki requires Accessibility permissions to register global push-to-talk hotkeys and automatically paste transcribed Arabic text into active applications.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>
