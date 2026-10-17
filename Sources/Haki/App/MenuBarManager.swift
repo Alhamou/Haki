@@ -196,6 +196,15 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
             )
             permItem.target = self
             menu.addItem(permItem)
+            
+            let restartItem = NSMenuItem(
+                title: "🔄 Restart Haki to Apply Permission",
+                action: #selector(restartAppClicked),
+                keyEquivalent: ""
+            )
+            restartItem.target = self
+            menu.addItem(restartItem)
+            
             menu.addItem(NSMenuItem.separator())
         }
         
@@ -248,6 +257,10 @@ public final class MenuBarManager: NSObject, NSMenuDelegate {
     
     @objc private func openPermissionsClicked() {
         AccessibilityHelper.shared.openSystemAccessibilitySettings()
+    }
+    
+    @objc private func restartAppClicked() {
+        AccessibilityHelper.shared.relaunchApp()
     }
     
     @objc private func quitAppClicked() {
