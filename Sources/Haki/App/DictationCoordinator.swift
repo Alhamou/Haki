@@ -85,54 +85,100 @@ public final class DictationCoordinator: ObservableObject {
         self.isTranscribing = true
         
         Task {
-            do {
+            await transcribeAndPaste {
                 let recordingResult = try AudioRecorder.shared.stopRecording()
                 defer {
                     // Strict privacy requirement: delete temporary recording immediately
                     try? FileManager.default.removeItem(at: recordingResult.fileURL)
                     AppLogger.shared.info("Temporary audio file safely removed.")
                 }
-                
-                guard let apiKey = settings.getAPIKey() else {
-                    throw TranscriptionError.missingAPIKey
+                return (try Data(contentsOf: recordingResult.fileURL), "dictation.wav", "audio/wav")
+            }
+        }
+    }
+    
+    /// Transcribes an audio file recorded elsewhere (e.g. on the iPhone via AirMouse) and pastes the text.
+    /// The file is always deleted afterwards.
+    public func transcribeFile(at fileURL: URL) {
+        guard !isRecording && !isTranscribing else {
+            AppLogger.shared.warning("Ignoring incoming audio: a dictation is already in progress.")
+            try? FileManager.default.removeItem(at: fileURL)
+            return
+        }
+        
+        FloatingHUDWindowController.shared.show(state: .transcribing)
+        MenuBarManager.shared.updateState(isRecording: false, isTranscribing: true)
+        self.isTranscribing = true
+        
+        Task {
+            await transcribeAndPaste {
+                defer {
+                    try? FileManager.default.removeItem(at: fileURL)
+                    AppLogger.shared.info("Incoming audio file safely removed.")
                 }
+                let ext = fileURL.pathExtension.lowercased()
+                return (try Data(contentsOf: fileURL), "dictation.\(ext)", Self.mimeType(forExtension: ext))
+            }
+        }
+    }
+    
+    private static func mimeType(forExtension ext: String) -> String {
+        switch ext {
+        case "m4a", "mp4": return "audio/mp4"
+        case "webm": return "audio/webm"
+        case "mp3": return "audio/mpeg"
+        case "ogg": return "audio/ogg"
+        default: return "audio/wav"
+        }
+    }
+    
+    /// Loads the audio, sends it to OpenAI and pastes the result. Expects `isTranscribing` to be set already.
+    private func transcribeAndPaste(
+        _ loadAudio: () throws -> (data: Data, filename: String, mimeType: String)
+    ) async {
+        let settings = AppSettings.shared
+        do {
+            let audio = try loadAudio()
+            
+            guard let apiKey = settings.getAPIKey() else {
+                throw TranscriptionError.missingAPIKey
+            }
+            
+            let text = try await OpenAIService.shared.transcribe(
+                audioData: audio.data,
+                apiKey: apiKey,
+                model: settings.model.rawValue,
+                language: settings.language,
+                prompt: settings.promptContext,
+                filename: audio.filename,
+                mimeType: audio.mimeType
+            )
+            
+            await MainActor.run {
+                self.isTranscribing = false
+                MenuBarManager.shared.updateState(isRecording: false, isTranscribing: false)
+                SoundEffects.shared.play(.transcriptionSuccess, enabled: settings.playSoundEffects)
                 
-                let audioData = try Data(contentsOf: recordingResult.fileURL)
-                
-                let text = try await OpenAIService.shared.transcribe(
-                    audioData: audioData,
-                    apiKey: apiKey,
-                    model: settings.model.rawValue,
-                    language: settings.language,
-                    prompt: settings.promptContext
-                )
-                
-                await MainActor.run {
-                    self.isTranscribing = false
-                    MenuBarManager.shared.updateState(isRecording: false, isTranscribing: false)
-                    SoundEffects.shared.play(.transcriptionSuccess, enabled: settings.playSoundEffects)
-                    
-                    if settings.pasteAutomatically {
-                        let pasted = PasteManager.shared.pasteText(text)
-                        if pasted {
-                            FloatingHUDWindowController.shared.show(state: .done)
-                        } else {
-                            FloatingHUDWindowController.shared.show(state: .error("Text copied! Enable Accessibility in Settings to auto-paste."))
-                        }
-                    } else {
-                        PasteManager.shared.pasteText(text, restoreClipboard: false)
+                if settings.pasteAutomatically {
+                    let pasted = PasteManager.shared.pasteText(text)
+                    if pasted {
                         FloatingHUDWindowController.shared.show(state: .done)
+                    } else {
+                        FloatingHUDWindowController.shared.show(state: .error("Text copied! Enable Accessibility in Settings to auto-paste."))
                     }
+                } else {
+                    PasteManager.shared.pasteText(text, restoreClipboard: false)
+                    FloatingHUDWindowController.shared.show(state: .done)
                 }
-            } catch {
-                await MainActor.run {
-                    self.isTranscribing = false
-                    MenuBarManager.shared.updateState(isRecording: false, isTranscribing: false)
-                    SoundEffects.shared.play(.errorAlert, enabled: settings.playSoundEffects)
-                    
-                    let errorDesc = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-                    FloatingHUDWindowController.shared.show(state: .error(errorDesc))
-                }
+            }
+        } catch {
+            await MainActor.run {
+                self.isTranscribing = false
+                MenuBarManager.shared.updateState(isRecording: false, isTranscribing: false)
+                SoundEffects.shared.play(.errorAlert, enabled: settings.playSoundEffects)
+                
+                let errorDesc = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                FloatingHUDWindowController.shared.show(state: .error(errorDesc))
             }
         }
     }

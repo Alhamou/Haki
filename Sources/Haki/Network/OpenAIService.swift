@@ -62,7 +62,9 @@ public final class OpenAIService {
         apiKey: String,
         model: String = "gpt-4o-transcribe",
         language: String = "ar",
-        prompt: String? = nil
+        prompt: String? = nil,
+        filename: String = "dictation.wav",
+        mimeType: String = "audio/wav"
     ) async throws -> String {
         let trimmedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedKey.isEmpty else {
@@ -99,8 +101,8 @@ public final class OpenAIService {
         // Audio File
         body.appendFileData(
             named: "file",
-            filename: "dictation.wav",
-            mimeType: "audio/wav",
+            filename: filename,
+            mimeType: mimeType,
             fileData: audioData,
             boundary: boundary
         )

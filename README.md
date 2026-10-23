@@ -118,6 +118,18 @@ This script will:
    - **Release** `⌥ Option + Space`.
    - The audio is sent to OpenAI and the transcribed Arabic text is automatically typed at your active cursor!
 
+### Dictating from your iPhone (AirMouse)
+
+[AirMouse](https://github.com/Alhamou/AirMouse) has a 🎤 voice tab: tap to talk on the phone, tap again, and Haki types the text on your Mac. Haki has to be installed and running. It uses your normal API key, model and language settings.
+
+How the handoff works (for other senders too):
+
+1. Write the recording into `~/Library/Caches/Haki/Inbox/` (`m4a`, `mp4`, `webm`, `wav`, `mp3` or `ogg`, up to 25 MB).
+2. Open `haki://transcribe?file=<file name>`, e.g. `open -g "haki://transcribe?file=clip.m4a"` (`-g` keeps focus on the app you're typing into).
+3. Haki transcribes the file, pastes the text into the focused field and deletes the file.
+
+Only plain file names inside the inbox are accepted. Paths, hidden files, symlinks out of the inbox and other file types are rejected.
+
 ---
 
 ## Detailed Permissions Explanation
@@ -166,6 +178,7 @@ Haki/
 │   ├── HotKey/                 # GlobalHotkeyManager (CGEventTap)
 │   ├── HUD/                    # FloatingHUDController, HUDView
 │   ├── Paste/                  # PasteManager (CGEvent, clipboard restoration)
+│   ├── Remote/                 # RemoteAudioInbox (haki:// URLs from AirMouse)
 │   ├── Network/                # OpenAIService, KeychainHelper, TranscriptionModel
 │   ├── UI/Settings/            # AppSettings, SettingsView, SettingsWindowController
 │   └── Utilities/              # AppLogger

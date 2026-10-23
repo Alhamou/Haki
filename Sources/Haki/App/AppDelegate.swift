@@ -43,6 +43,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    /// haki://transcribe?file=… from AirMouse (audio recorded on the iPhone).
+    public func application(_ application: NSApplication, open urls: [URL]) {
+        urls.forEach(RemoteAudioInbox.handle)
+    }
+    
     public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         SettingsWindowController.shared.showSettings()
         return true

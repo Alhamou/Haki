@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Remote audio from AirMouse**: Haki now handles `haki://transcribe?file=<name>` URLs. A clip placed in `~/Library/Caches/Haki/Inbox` is transcribed with your current model and language, typed into the focused field, then deleted. AirMouse uses this to let you dictate from the iPhone's microphone.
 - **Automatic Microphone Preference**: Optional setting (enabled by default) that automatically selects AirPods when they connect, then any USB microphone, falling back to the system default. Toggle in Settings → Audio.
 
 ### Fixed
